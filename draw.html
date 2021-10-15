@@ -1,0 +1,71 @@
+<body>
+    <canvas id = "image" style="position: absolute; top: 10px; left:10px; z-index: -10;" id="canvas" width="256" height="256"></canvas>
+    <canvas id = "draw"  width="256" height="256" style="border:1px solid #000000;"></canvas>
+    <textarea rows="17"></textarea> 
+    <p>Trace image: <input type='file' />
+    <button onClick="generate()">Generate</button>
+    <button onClick="copy()">Copy</button></p>
+</body>
+
+<script type="text/javascript">
+
+    document.querySelector('input[type="file"]').addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                trace_image.src = URL.createObjectURL(this.files[0]);
+                trace_image.onload = function() {
+                    img_ctx.drawImage(trace_image, 0, 0, 256, 256);
+                    has_image = true;
+                }
+
+            }
+    });
+
+    var cleared = 0;
+    var str = "";
+    var trace_image = new Image();
+
+
+    function copy() {
+        navigator.clipboard.writeText(str);
+    }
+
+    function generate() {
+        let output = document.querySelector('textarea');
+        ctx.closePath();
+        str += ";";
+        output.value = str;
+    }
+
+    function addClick(canvas, event) {
+        let rect = canvas.getBoundingClientRect();
+        let x = event.clientX - rect.left;
+        let y = event.clientY - rect.top;
+
+        if(cleared == 0) {
+            ctx.moveTo(x, y);       
+            str += ".moveTo(" + x + 
+                        "," + y + ")"; 
+            cleared = 1; 
+        }
+        else {
+            ctx.lineTo(x, y);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.stroke();
+            str += "\n.lineTo(" + x +
+                        "," + y + ")";
+        }
+    }
+  
+    let canvas = document.getElementById("draw");
+    let image = document.getElementById("image");
+    let img_ctx = image.getContext('2d'); 
+    let ctx = canvas.getContext('2d');
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#ff0000';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    canvas.addEventListener("mousedown", function(e)
+    {
+        addClick(canvas, e);
+    });
+</script>
